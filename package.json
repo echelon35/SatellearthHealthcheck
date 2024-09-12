@@ -1,0 +1,25 @@
+{
+  "name": "satellearthhealthcheck",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/echelon35/SatellearthHealthcheck.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/echelon35/SatellearthHealthcheck/issues"
+  },
+  "homepage": "https://github.com/echelon35/SatellearthHealthcheck#readme",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0"
+  }
+}
