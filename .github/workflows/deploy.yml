@@ -1,0 +1,72 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main  #Push on main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add server to known_hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_URL }} >> ~/.ssh/known_hosts
+
+    - name: Stop SatellearthHealth if running
+      run: |
+        ssh root@${{ secrets.SERVER_URL }} "pm2 stop satellearth-health || true"
+
+    - name: Delete SatellearthHealth directory if already exists on EC2
+      run: |
+        ssh root@${{ secrets.SERVER_URL }} "rm -r /opt/satellearth-health || true"
+
+    - name: Ensure SatellearthHealth directory exists on EC2
+      run: |
+        ssh root@${{ secrets.SERVER_URL }} "mkdir -p /opt/satellearth-health"
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'  # Node.js version needed by the project
+
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Create env file
+      run: |
+          touch .env
+          echo SATELLEARTH_API=${{ secrets.SATELLEARTH_API }} >> .env
+          echo DISASTER_API=${{ secrets.DISASTER_API }} >> .env
+          echo DISASTER_EATER=${{ secrets.DISASTER_EATER }} >> .env
+          echo SATELLEARTH_HEALTHCHECK=${{ secrets.SATELLEARTH_HEALTHCHECK }} >> .env
+          echo SATELLEARTH_HEALTHCHECK_PORT=${{ secrets.SATELLEARTH_HEALTHCHECK_PORT }} >> .env
+          cat .env
+
+    - name: Copy files to EC2 instance
+      run: |
+        scp -r ./* package.json .env root@${{ secrets.SERVER_URL }}:/opt/satellearth-health/
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Install dependencies with npm ci
+      run: |
+        ssh root@${{ secrets.SERVER_URL }} "cd /opt/satellearth-health/ && npm ci"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Restart  API with PM2
+      run: |
+        ssh root@${{ secrets.SERVER_URL }} "pm2 restart satellearth-health || pm2 start /opt/satellearth-health/app.js --name satellearth-health"
