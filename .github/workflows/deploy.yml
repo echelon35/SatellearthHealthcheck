@@ -47,23 +47,23 @@ jobs:
 
     - name: Create env file
       run: |
-          touch .env
-          echo SATELLEARTH_API=${{ secrets.SATELLEARTH_API }} >> .env
-          echo DISASTER_API=${{ secrets.DISASTER_API }} >> .env
-          echo DISASTER_EATER=${{ secrets.DISASTER_EATER }} >> .env
-          echo SATELLEARTH_HEALTHCHECK=${{ secrets.SATELLEARTH_HEALTHCHECK }} >> .env
-          echo SATELLEARTH_HEALTHCHECK_PORT=${{ secrets.SATELLEARTH_HEALTHCHECK_PORT }} >> .env
-          cat .env
+          touch env
+          echo SATELLEARTH_API=${{ secrets.SATELLEARTH_API }} >> env
+          echo DISASTER_API=${{ secrets.DISASTER_API }} >> env
+          echo DISASTER_EATER=${{ secrets.DISASTER_EATER }} >> env
+          echo SATELLEARTH_HEALTHCHECK=${{ secrets.SATELLEARTH_HEALTHCHECK }} >> env
+          echo SATELLEARTH_HEALTHCHECK_PORT=${{ secrets.SATELLEARTH_HEALTHCHECK_PORT }} >> env
+          cat env
 
     - name: Copy files to EC2 instance
       run: |
-        scp -r ./* package.json root@${{ secrets.SERVER_URL }}:/opt/satellearth-health/
+        scp -r ./* root@${{ secrets.SERVER_URL }}:/opt/satellearth-health/
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Copy env file to EC2 instance
+    - name: Rename env file
       run: |
-        scp -r .env root@${{ secrets.SERVER_URL }}:/opt/satellearth-health/
+        ssh root@${{ secrets.SERVER_URL }} "mv /opt/satellearth-health/env /opt/satellearth-health/.env"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
