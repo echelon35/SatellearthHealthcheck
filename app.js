@@ -1,8 +1,9 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const path = require('path')
 
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, './.env')});
 
 const app = express();
 const port = process.env.SATELLEARTH_HEALTHCHECK_PORT || 3000;
